@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Paper Man - My paper list</title>
+    <link rel="stylesheet" href="css/bootstrap.css">
+</head>
+<body>
+<div class="container" id="pm-admin-panel">
+    <!--Login Dialog-->
+
+
+    <!-- Modal -->
+    <div class="modal fade" id="pm-admin-login" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="pm-login-header">Admin Login</h4>
+                </div>
+                <div class="modal-body">
+                    <form class="form">
+                        <div class="form-group form-inline">
+                            <label for="pm-login-username" style="width: 70px">Username</label>
+                            <input type="text" class="form-control"  style="width: 200px" id="pm-login-username" placeholder="Username">
+                        </div>
+                        <div class="form-group form-inline">
+                            <label for="pm-login-username" style="width: 70px">Password</label>
+                            <input type="password" class="form-control" style="width: 200px" id="pm-login-password" placeholder="Username">
+                            <div class="alert alert-error fade in" id="pm-login-error" style="display:none;">
+                                Username/password error
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <!-- Error msg-->
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary btn-lg" id="pm-login-button">Login</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="paper_list" class="container" style="display:none">
+        <!-- API List-->
+        <h2>Paper Man System - Enjoy</h2>
+        <button data-bind="click: addNewPaperDialog" type="button" class="btn btn-primary">Add New Paper</button>
+        <button data-bind="click: refreshPaper" type="button" class="btn btn-primary">Refresh List</button>
+        <p></p>
+        <table class="table table-striped">
+            <tr>
+                <th><b>Year</b></th>
+                <th><b>Authors</b></th>
+                <th><b>Paper Title</b></th>
+                <th><b>Published in</b></th>
+                <th></th>
+            </tr>
+            <!-- ko foreach: papers -->
+            <tr>
+
+                <td>
+                    <p> <b data-bind="text: year"></b></p>
+                </td>
+                <td>
+                    <p data-bind="text: author"></p>
+                </td>
+                <td>
+                    <p data-bind="text: title"></p>
+                </td>
+                <td>
+                    <p data-bind="text: arena"></p>
+                </td>
+                <td>
+                    <button data-bind="click: $parent.editPaper" type="button" class="btn btn-success" style="width: 100px">Edit</button>
+                    <button data-bind="click: $parent.deletePaper" type="button" class="btn btn-warning">Delete</button>
+
+                </td>
+
+            </tr>
+            <!-- /ko -->
+        </table>
+
+    </div>
+
+
+    <div id="pm-edit-paper-dialog" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="editDialogLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="margin: 100px;">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="editDialogLabel">Adding New Paper</h3>
+                </div>
+                <div class="modal-body">
+                    <form class="form">
+                        <!-- ko foreach: fields -->
+                        <div class="form-group">
+                            <label for="pm-new-paper-bibtex" style="width:300px" ><p data-bind="text: label"></p></label>
+                            <input type="password" class="form-control" style="width: 200px" data-bind="content" placeholder="Username">
+                        </div>
+                        <!-- /ko -->
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button data-bind="click: confirm" class="btn btn-primary">Add paper</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="pm-add-paper-dialog" class="modal fade" tabindex="=1" role="dialog" aria-labelledby="addDialogLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="margin: 100px;">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3 id="addDialogLabel">Adding New Paper</h3>
+                </div>
+                <div class="modal-body">
+                    <form class="form">
+                        <div class="form-group">
+                            <label for="pm-new-paper-bibtex" style="width:300px" >Bibtex of the paper</label>
+                            <textarea class="form-control" data-bind="value: bibtex" id="pm-new-paper-bibtex" rows="5"></textarea>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button data-bind="click: confirm" class="btn btn-primary">Add paper</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container" id="pm-logout-panel" style="display:none">
+        <button type="button" class="btn btn-primary btn-lg" id="pm-logout">Logout</button>
+    </div>
+</div>
+
+<script src="js/jquery.js"></script>
+<script src="js/bootstrap.js"></script>
+<script src="js/knockout-2.2.1.js"></script>
+<script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+*.pdf
+test/
+others/
+/*.md
+/*.html
+/*.jpg
+.htaccess
+.idea/
+
+

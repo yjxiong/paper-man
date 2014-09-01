@@ -1,0 +1,6 @@
+# ignore config file
+*.ini
+paper_man/pm-config.php
+*.txt
+counter/
+.idea/
