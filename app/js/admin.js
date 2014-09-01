@@ -21,8 +21,7 @@ paperMan.init = function(){
             })
         }else{
 
-            ko.applyBindings(paperview, $('#paper_list')[0]);
-            ko.applyBindings(addPaperView, $('#pm-add-paper-dialog')[0]);
+
             paperview.listPaper();
             paperMan.createAdminPanel();
 
@@ -198,3 +197,5 @@ $(function() {
 
 var paperview = new paperMan.paperViewModel();
 var addPaperView = new paperMan.addPaperViewModel();
+ko.applyBindings(paperview, $('#paper_list')[0]);
+ko.applyBindings(addPaperView, $('#pm-add-paper-dialog')[0]);
