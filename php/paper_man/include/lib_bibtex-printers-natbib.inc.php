@@ -19,7 +19,7 @@ class NatbibPrinter extends BasePrinter {
 	}
 
 	// Gives the string of the full citation, like for in the bibliography
-	function CitationStr($entry) {
+	function CitationStr($entry, $aux=Array()) {
 		$str = $this->StartCitationStr($entry);
 		$fullnames = $this->AuthorsStr($entry);
 		$str .= '<span class="bibtex-author">' . ($fullnames[strlen($fullnames)-1] == '.' ? substr($fullnames, 0, -1) : $fullnames) . '.</span> ';

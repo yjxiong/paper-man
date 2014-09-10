@@ -22,7 +22,13 @@ class DBConn {
         $stmt = $this->_db->prepare($qstr);
         foreach ($params as $param) {
             if (count($param) == 3){
-                $stmt->bindParam($param[0], $param[1], $param[2]);
+                if ($param[1] == null){
+                    $stmt->bindValue($param[0], $param[1], $param[2]);
+                }else{
+                    $stmt->bindParam($param[0], $param[1], $param[2]);
+                }
+
+
             }else{
                 $stmt->bindParam($param[0], $param[1], $param[2],$param[3]);
             }

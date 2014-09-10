@@ -23,6 +23,7 @@ class paper_model{
 
     private $paper_bibtex;
 
+    private $visible=true;
 
 
 
@@ -39,29 +40,38 @@ class paper_model{
     }
 
     public function put(){
+
+
         $conn = PaperDB::get_db_conn();
 
         $db_entry = $this->_to_db_entries();
 
-        $fields = array_keys($db_entry[0]);
 
-        $placeholder = array_map(function($str){
-            return ':'.$str;
-        }, $fields);
-
-        $qstr = 'INSERT INTO pm_paper ('.join(',',$fields).') VALUES ('.join(',',$placeholder).')';
 
 
         foreach($db_entry as $entry){
+
+            $fields = array_keys($entry);
+
+            $placeholder = array_map(function($str){
+                return ':'.$str;
+            }, $fields);
+
+            $qstr = 'INSERT INTO pm_paper ('.join(', ',$fields).') VALUES ('.join(', ',$placeholder).')';
+
             $param = array();
+            $empty_field = null;
             foreach ($fields as $f) {
                 array_push($param, array($f, $entry[$f], \PDO::PARAM_STR));
             }
             $conn->query($qstr, $param);
 
             $paper_id=PaperDB::last_insert_id();
-            $author_list[$paper_id] = $this->_format_authors(true);
+            $author_list[$paper_id] = $this->_format_authors(true, $entry['author']);
         }
+
+        $this->_save_paper_extra(array_keys($author_list));
+
 
         $author_names = array();
         $author_paper_bind = array();
@@ -89,8 +99,6 @@ class paper_model{
         }
 
         $this->_save_author_paper_bind($author_paper_bind);
-
-
 
     }
 
@@ -209,8 +217,12 @@ class paper_model{
 
     }
 
-    private function _format_authors($get_array=false){
-        $authors = $this->paper_bibtex->data[0]['author'];
+    private function _format_authors($get_array=false, $author_list=null){
+        if ($author_list==null){
+            $authors = $this->paper_bibtex->data[0]['author'];
+        }else{
+            $authors = json_decode($author_list,true);
+        }
 
         $author_strs = array_map(function($a){return \Structures_BibTex::_formatAuthor($a);}, $authors);
 
@@ -224,7 +236,7 @@ class paper_model{
 
 
     public static function all(){
-        $qstr = 'SELECT * FROM  pm_paper ORDER BY CAST(year AS UNSIGNED) DESC ';
+        $qstr = 'SELECT pm_paper.*, pm_paper_extra.visible FROM  pm_paper, pm_paper_extra WHERE pm_paper.paper_id=pm_paper_extra.paper_id ORDER BY CAST(pm_paper.year AS UNSIGNED) DESC ';
 
         $conn = PaperDB::get_db_conn();
 
@@ -255,6 +267,21 @@ class paper_model{
         for($i=0;$i<count($bind_array);$i++){
             array_push($param, array('paper_id'.$i, $bind_array[$i][0], \PDO::PARAM_INT));
             array_push($param, array('author_id'.$i, $bind_array[$i][1], \PDO::PARAM_INT));
+        }
+
+        PaperDB::query($qstr, $param);
+    }
+
+    private function _save_paper_extra($ids){
+
+        $placeholders = array_map( function($index){
+            return '(:paper_id'.$index.')';
+        },range(0, count($ids)-1));
+        $qstr = 'INSERT INTO pm_paper_extra (paper_id) VALUES '.join(', ',$placeholders);
+
+        $param = array();
+        for($i=0;$i<count($ids);$i++){
+            array_push($param, array('paper_id'.$i, $ids[$i], \PDO::PARAM_INT));
         }
 
         PaperDB::query($qstr, $param);
@@ -309,6 +336,7 @@ class paper_model{
 
             }
         }
+        $this->visible = $db_entry[0]['visible'];
         array_push($this->paper_bibtex->data, $papers);
     }
 
@@ -332,7 +360,7 @@ class paper_model{
 
         $build_author_paper_str = ' CREATE TABLE '.$config["db_name"].'.pm_author_paper_bind(bind_id int NOT NULL AUTO_INCREMENT PRIMARY KEY , author_id int NOT NULL,  paper_id int NOT NULL,  Foreign Key (author_id) REFERENCES pm_author(author_id),  Foreign Key (paper_id) REFERENCES pm_paper(paper_id));';
 
-        $build_paper_extra_str = 'CREATE TABLE  '.$config["db_name"].'.`pm_paper_extra` (`paper_id` INT NOT NULL ,`visible` BOOL NOT NULL ,`download_url` TEXT NOT NULL ,`project_site` TEXT NOT NULL ,`thumb_url` TEXT NOT NULL ,PRIMARY KEY (  `paper_id` ), Foreign Key (paper_id) REFERENCES pm_paper(paper_id)); ';
+        $build_paper_extra_str = 'CREATE TABLE  '.$config["db_name"].'.`pm_paper_extra` (`paper_id` INT NOT NULL ,`visible` BOOL NOT NULL DEFAULT TRUE ,`download_url` TEXT NOT NULL ,`project_site` TEXT NOT NULL ,`thumb_url` TEXT NOT NULL ,PRIMARY KEY (  `paper_id` ), Foreign Key (paper_id) REFERENCES pm_paper(paper_id)); ';
 
         $build_admin = 'CREATE TABLE '.$config["db_name"].'.`pm_admin` (`admin_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `admin_level` INT NOT NULL DEFAULT 0, `admin_name` VARCHAR(255), `admin_pw` VARCHAR(255), UNIQUE(`admin_name`)); ';
 

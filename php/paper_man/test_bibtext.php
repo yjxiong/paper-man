@@ -26,9 +26,9 @@ $str = @file_get_contents('./include/example.bib');
 //var_dump(\paper_man\paper_model::query_title("Spectral hashing"));
 //
 $pm = new \paper_man\PaperMan();
-//$pm->addPaper($str);
+$pm->addPaper($str);
 
-echo($pm->getPaperByAuthor('Yuanjun Xiong', 'natbib'));
+//echo($pm->getPaperByAuthor('Yuanjun Xiong', 'natbib'));
 
 //var_dump(\paper_man\author_model::get_author('Yuanjun Xiong'));
 

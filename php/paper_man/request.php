@@ -83,6 +83,15 @@ if (isset($_GET['action'])){
 
         case "editPaper":
             $pm->requireLogin();
+            $new_obj = $_POST['updated_paper'];
+            $paper_id = $_POST['paper_id'];
+
+            $updated_paper = json_decode($new_obj);
+
+            $pm->editPaper($paper_id, $updated_paper);
+
+            $msg = new \paper_man\PaperManMessage(1000, 'success');
+
             break;
 
         case "deletePaper":

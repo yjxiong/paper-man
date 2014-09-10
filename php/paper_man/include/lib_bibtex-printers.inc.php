@@ -73,7 +73,7 @@ abstract class BasePrinter {
 		$str = $this->StartCitationStr($entry);
 		$fullnames = $this->AuthorsStr($entry);
 		$str .= '<span class="bibtex-author">' . ($fullnames[strlen($fullnames)-1] == '.' ? substr($fullnames, 0, -1) : $fullnames) . '.</span> ';
-		$str .= '<span class="bibtex-title"><a href="'.(!isset($entry['paperurl']) ? 'http://scholar.google.com/scholar?q=' . $this->RemoveTag($entry['title']) : $entry['paperurl'] ). '">' . $entry['title'] . '</a></span>. ';
+		$str .= '<span class="bibtex-title"><a href="'.(!isset($entry['paperurl']) ? 'http://scholar.google.com/scholar?q=' . $this->RemoveTag($entry['title']) : $entry['paperurl'] ). '"><b>' . $entry['title'] . '</b></a></span>. ';
 		$str .= (isset($entry['booktitle']) ? 'In <span class="bibtex-booktitle">' . $entry['booktitle'] . '</span>' : '');
 		$str .= (isset($entry['journal'])?' <span class="bibtex-jname">' . $entry['journal'] . '</span>':'');
 		$str .= (isset($entry['volume'])?', <span class="bibtex-volume">'.$entry['volume'].'</span>':'');

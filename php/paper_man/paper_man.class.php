@@ -193,7 +193,8 @@ class PaperMan{
                         $data['author'] = $dsp['author'];
                         $data['type'] = $data['entryType'];
                         $printer = new \AbbrvPrinter();
-                        return '<li>'.$printer->CitationStr($data).'</li>';
+                        $ret = '<li>'.$printer->CitationStr($data).'</li>';
+                        return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
                     },
                     $papers);
                 return join(' ',$entries);
@@ -218,6 +219,10 @@ class PaperMan{
         } else{
             return $paper->to_string();
         }
+
+    }
+
+    public function editPaper($paper_id, $updated_paper){
 
     }
 
