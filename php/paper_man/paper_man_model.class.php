@@ -332,7 +332,14 @@ class paper_model{
 
         $build_author_paper_str = ' CREATE TABLE '.$config["db_name"].'.pm_author_paper_bind(bind_id int NOT NULL AUTO_INCREMENT PRIMARY KEY , author_id int NOT NULL,  paper_id int NOT NULL,  Foreign Key (author_id) REFERENCES pm_author(author_id),  Foreign Key (paper_id) REFERENCES pm_paper(paper_id));';
 
-        $ret_str = $base_str.$field_str_full.' ) ENGINE = MYISAM;  '.$build_author_db_str.$build_author_paper_str;
+        $build_paper_extra_str = 'CREATE TABLE  '.$config["db_name"].'.`pm_paper_extra` (`paper_id` INT NOT NULL ,`visible` BOOL NOT NULL ,`download_url` TEXT NOT NULL ,`project_site` TEXT NOT NULL ,`thumb_url` TEXT NOT NULL ,PRIMARY KEY (  `paper_id` ), Foreign Key (paper_id) REFERENCES pm_paper(paper_id)); ';
+
+        $build_admin = 'CREATE TABLE '.$config["db_name"].'.`pm_admin` (`admin_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `admin_level` INT NOT NULL DEFAULT 0, `admin_name` VARCHAR(255), `admin_pw` VARCHAR(255), UNIQUE(`admin_name`)); ';
+
+        $build_root_admin = 'INSERT INTO pm_admin (admin_name, admin_pw, admin_level) VALUES ("admin", "'.password_hash('142536', PASSWORD_DEFAULT).'", 10);';
+
+        $ret_str = $base_str.$field_str_full.' ) ENGINE = MYISAM;  '.$build_author_db_str.$build_author_paper_str.$build_paper_extra_str.$build_admin.$build_root_admin;
+
 
         return $ret_str;
 
