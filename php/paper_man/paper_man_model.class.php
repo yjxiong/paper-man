@@ -12,7 +12,9 @@ require_once('./include/BibTex.php');
 require_once('./include/mysql_conn/DBConn.class.php');
 require_once('./include/mysql_conn/DBError.class.php');
 require_once('./db.php');
+require_once('./include/lib_bibtex-printers-abbrv.inc.php');
 require_once('./include/lib_bibtex-printers-natbib.inc.php');
+require_once('./include/lib_bibtex-printers-numeric.inc.php');
 
 
 
@@ -92,26 +94,48 @@ class paper_model{
 
     }
 
-    public function get_data(){
-        return $this->paper_bibtex->data;
+    public function get_data($index=null){
+        if ($index!=null){
+            $raw =  $this->paper_bibtex->data;
+            return $raw[$index];
+        }else{
+            return $this->paper_bibtex->data;
+        }
+
     }
 
     public function update_data($data_array){
 
     }
 
-    public static function  query_id($id){
+    public static function  query_id($paper_id){
+
+        $qstr = 'SELECT * FROM pm_paper WHERE paper_id = :paper_id';
+
+        $param = array();
+        array_push($param, array(':paper_id',intval($paper_id), \PDO::PARAM_INT));
+
+        $qrst =  PaperDB::get_db_conn()->query($qstr, $param);
+
+        $paper = new paper_model();
+        $paper->_populate_from_db($qrst[0]);
+
+        return $paper;
 
     }
 
-    public static function query_title($title){
+        public static function query_title($title){
 
         $qstr = 'SELECT * FROM pm_paper WHERE title = :title';
 
         $param = array();
         array_push($param, array(':title', $title, \PDO::PARAM_STR, 255));
 
-        return PaperDB::get_db_conn()->query($qstr, $param);
+        $qrst =  PaperDB::get_db_conn()->query($qstr, $param);
+        $paper = new paper_model();
+        $paper->_populate_from_db($qrst[0]);
+
+        return $paper;
     }
 
     public static function query_by_author($author_id){
@@ -200,7 +224,7 @@ class paper_model{
 
 
     public static function all(){
-        $qstr = 'SELECT * FROM  pm_paper ORDER BY "year"';
+        $qstr = 'SELECT * FROM  pm_paper ORDER BY CAST(year AS UNSIGNED) DESC ';
 
         $conn = PaperDB::get_db_conn();
 

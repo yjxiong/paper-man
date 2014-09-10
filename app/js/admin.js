@@ -92,6 +92,7 @@ paperMan.paperViewModel = function(){
     self.listPaperURI = self.apiBase+'getAllPapers';
     self.addPaperURI = self.apiBase+'addPaper';
     self.parseBibURI = self.apiBase+'parseBibtex';
+    self.getPaperInfoURI = self.apiBase+'getPaperByID';
     self.papers = ko.observableArray();
 
     self.listPaper = function(){
@@ -110,6 +111,7 @@ paperMan.paperViewModel = function(){
                            author: ko.observable(data.content.papers[i].author),
                            title: ko.observable(data.content.papers[i].title),
                            arena: ko.observable(data.content.papers[i].arena),
+                           status: "Hide",
                            id: data.content.papers[i].paper_id
 
                        })
@@ -130,6 +132,38 @@ paperMan.paperViewModel = function(){
         $('#pm-add-paper-dialog').modal('show');
     }
 
+    self.editPaperDialog = function(paper){
+        paper_id = paper.id
+
+        $.ajax({
+            url: self.getPaperInfoURI,
+            type: 'GET',
+            data: {
+                paper_id: paper_id
+            },
+            success: function(data){
+                if ((data.error_code != 1000 )||( data.content.length== 0)) {
+                    console.log("can't get paper info");
+                }else{
+//                    console.log(data);
+                    // Push the data to the table
+                    paper = data.content;
+                    editPaperView.showEditDiaglog(paper)
+
+                }
+            },
+            error: function(data){
+                alert('Connection error!');
+            }
+        });
+
+    }
+
+    self.changePaperVis = function(paper){
+
+    }
+
+
     self.addNewPaper = function (bibtex_str){
         $.ajax({
             url: self.addPaperURI,
@@ -149,8 +183,31 @@ paperMan.paperViewModel = function(){
         });
     }
 
-    self.deletePaper = function(paper){
-        console.log(paper.id);
+    self.deletePaperDialog = function(paper){
+        bootbox.dialog({
+            title: "Confirm deleting",
+            message: "You are deleting paper <b>"+paper.title()+"</b>.\n Once deleted, it will be removed from database. You need to insert it again if you want it to be displayed. \n Are you SURE?",
+            buttons: {
+                delete: {
+                    label: "Confir and Delete",
+                    className: "btn-danger",
+                    callback: function() {
+                        self.deletePaper(paper.id)
+                    }
+                },
+                cancel: {
+                    label: "Cancel",
+                    className: "btn-default",
+                    callback: function() {
+
+                    }
+                }
+            }
+        });
+    }
+
+    self.deletePaper = function(paper_id){
+
     }
 
     self.editPaper = function(paper){
@@ -182,12 +239,45 @@ paperMan.addPaperViewModel = function(){
 
 paperMan.editPaperViewModel = function(){
     var self = this;
-    self.fields = ko.observablearArray("");
+    self.editFields = ko.observableArray();
+
 
     self.confirm = function(){
-        $('#pm-add-paper-dialog').modal('hide');
-        paperview.addNewPaper(self.bibtex());
+        $('#pm-edit-paper-dialog').modal('hide');
+//        paperview.addNewPaper(self.bibtex());
 
+    }
+
+    self.cancel = function(){
+        $('#pm-edit-paper-dialog').modal('hide');
+    }
+
+    self.showEditDiaglog = function(paper){
+//        keys = Object.keys(paper);
+//        console.log(keys);
+        console.log(paper)
+        self.editFields.removeAll();
+        for (var prop in paper){
+
+            if (prop == 'paper_id'){
+                continue;
+            }
+            if (paper.hasOwnProperty(prop)){
+                if (paper[prop]){
+                    self.editFields.push({
+                        label: prop.toUpperCase(),
+                        content: paper[prop],
+                        holder: prop
+                    });
+                }else{
+
+                }
+
+            }
+
+        }
+
+        $("#pm-edit-paper-dialog").modal('show')
     }
 }
 
@@ -197,5 +287,7 @@ $(function() {
 
 var paperview = new paperMan.paperViewModel();
 var addPaperView = new paperMan.addPaperViewModel();
+var editPaperView = new paperMan.editPaperViewModel();
 ko.applyBindings(paperview, $('#paper_list')[0]);
 ko.applyBindings(addPaperView, $('#pm-add-paper-dialog')[0]);
+ko.applyBindings(editPaperView, $('#pm-edit-paper-dialog')[0]);

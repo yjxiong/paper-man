@@ -46,6 +46,18 @@ if (isset($_GET['action'])){
             $msg = $pm->adminLogout();
             break;
 
+        case "getPaperByID":
+
+            $pm->requireLogin();
+
+            $paper_id=$_GET['paper_id'];
+
+
+            $msg = new \paper_man\PaperManMessage(1000,'success');
+
+            $msg->content = $pm->getPaperByID($paper_id);
+            break;
+
         case "getPapers":
             /**
              *  Give paper list
@@ -58,7 +70,7 @@ if (isset($_GET['action'])){
             $str = $pm->getPaperByAuthor($author_name, $format);
 
             if ($display==null){
-                echo('document.write("'.$str.'");');
+                echo("document.write('".$str."');");
             }
             exit();
             break;
@@ -101,7 +113,7 @@ if (isset($_GET['action'])){
             $msg->content = $pm->getAllPapers();
             break;
         default:
-            $msg = new \paper_man\PaperManMessage(1099, 'unknown error');
+            $msg = new \paper_man\PaperManMessage(1099, 'action not supported');
     }
 
     echo($msg->toJSON());

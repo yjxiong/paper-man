@@ -187,19 +187,43 @@ class PaperMan{
 
                 $entries = array_map(
                     function($paper){
-                        $data = $paper->get_data();
+                        $raw = $paper->get_data();
+                        $data = $raw[0];
+                        $dsp = $paper->to_display();
+                        $data['author'] = $dsp['author'];
                         $data['type'] = $data['entryType'];
-                        $printer = new \NatbibPrinter();
-                        return $printer->CitationStr($data);
+                        $printer = new \AbbrvPrinter();
+                        return '<li>'.$printer->CitationStr($data).'</li>';
                     },
                     $papers);
-                return $entries;
+                return join(' ',$entries);
             }
             return $papers;
         }
+    }
 
+
+    public function getPaperByID($paper_id, $format='json'){
+
+        $paper = paper_model::query_id($paper_id);
+
+        if ($format == 'json'){
+            $raw = $paper->get_data();
+            $data = $raw[0];
+            $disp_list = $paper->to_display();
+            $data['author'] = $disp_list['author'];
+
+            return $data;
+
+        } else{
+            return $paper->to_string();
+        }
 
     }
+
+
+
+
 
 
 

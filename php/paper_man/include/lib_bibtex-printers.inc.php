@@ -63,7 +63,12 @@ abstract class BasePrinter {
 	}
 
 	// Gives the string of the full citation, like for in a list
-	function CitationStr($entry) {
+	function CitationStr($entry, $aux=array()) {
+
+        if (isset($aux['download_url'])){
+            $entry['paperurl'] = $aux['download_url'];
+        }
+
 		global $Path;
 		$str = $this->StartCitationStr($entry);
 		$fullnames = $this->AuthorsStr($entry);
@@ -79,6 +84,13 @@ abstract class BasePrinter {
 		$str .= $this->CitationNoteStr($entry);
 		$str .= $this->CitationImplementUrlStr($entry);
 		$str .= $this->EndCitationStr();
+
+        if (isset($aux['download_url'])){
+            $str .=' [<a href='.$aux['download_url'].'>PDF</a>]';
+        }
+        if (isset($aux['project_site'])){
+            $str .=' [<a href='.$aux['project_site'].'>Project Site</a>]';
+        }
 		return $str;
 	}
 	function CitationNoteStr($entry) {
