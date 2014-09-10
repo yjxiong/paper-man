@@ -189,7 +189,7 @@ class PaperMan{
                     function($paper){
                         $raw = $paper->get_data();
                         $data = $raw[0];
-                        $dsp = $paper->to_display();
+                        $dsp = $paper->to_display(true);
                         $data['author'] = $dsp['author'];
                         $data['type'] = $data['entryType'];
                         $printer = new \AbbrvPrinter();
@@ -224,6 +224,18 @@ class PaperMan{
 
     public function editPaper($paper_id, $updated_paper){
 
+        $paper = paper_model::query_id($paper_id);
+
+        if ($paper == null){
+            $msg = new PaperManMessage(1011, 'paper found');
+            return $msg;
+        }
+
+        $success = $paper->update_data($paper_id, $updated_paper);
+
+        $msg = new PaperManMessage(1000, 'success');
+
+        return $msg;
     }
 
 

@@ -112,7 +112,46 @@ class paper_model{
 
     }
 
-    public function update_data($data_array){
+    public function update_data($paper_id, $update_paper_obj, $save=true){
+        $data = $this->paper_bibtex->data[0];
+        foreach (array_keys($update_paper_obj) as $field){
+            if ($field == 'paper_id'){
+                continue;
+            }
+            if ($field != null){
+                if ($field !='author'){
+                    $data[$field] = $update_paper_obj[$field];
+                }else{
+                    $author_str = $update_paper_obj[$field];
+                    $data[$field] = $this->_extract_authors(join(' and ',$author_str));
+                }
+            }
+        }
+        $this->paper_bibtex->data = array($data);
+
+
+        $db_entry = $this->_to_db_entries();
+
+        $entry = $db_entry[0];
+
+        if ($save){
+            $fields = array_keys($entry);
+
+            $placeholder = array_map(function($str){
+                return $str.'=:'.$str;
+            }, $fields);
+
+            $qstr = 'UPDATE pm_paper SET '.join(', ',$placeholder).' WHERE paper_id='.$paper_id;
+
+            $param = array();
+            $empty_field = null;
+            foreach ($fields as $f) {
+                array_push($param, array($f, $entry[$f], \PDO::PARAM_STR));
+            }
+            PaperDB::query($qstr, $param);
+        }
+
+        return true;
 
     }
 
@@ -126,7 +165,12 @@ class paper_model{
         $qrst =  PaperDB::get_db_conn()->query($qstr, $param);
 
         $paper = new paper_model();
-        $paper->_populate_from_db($qrst[0]);
+
+        if(count($qrst) == 0){
+            return null;
+        }
+
+        $paper->_populate_from_db($qrst[0],false);
 
         return $paper;
 
@@ -163,7 +207,7 @@ class paper_model{
     }
 
 
-    public function to_display(){
+    public function to_display($get_author_str=false){
         include('pm-config.php');
         $display_list = array();
         foreach($DISPLAY_FIELDS as $f){
@@ -179,7 +223,13 @@ class paper_model{
             }
         }
         $display_list['arena'] = join(',', $arena_array);
-        $display_list['author'] = $this->_format_authors();
+        if ($get_author_str){
+            $author_array = $this->_format_authors(true, null, true);
+            $display_list['author'] = join(', ',array_slice($author_array,0, -1)).', {and} '.end($author_array);
+        }else{
+            $display_list['author'] = $this->_format_authors(true);
+        }
+
 
         return $display_list;
 
@@ -217,20 +267,24 @@ class paper_model{
 
     }
 
-    private function _format_authors($get_array=false, $author_list=null){
+    private function _format_authors($get_array=false, $author_list=null , $abbrv=false){
         if ($author_list==null){
             $authors = $this->paper_bibtex->data[0]['author'];
         }else{
             $authors = json_decode($author_list,true);
         }
 
-        $author_strs = array_map(function($a){return \Structures_BibTex::_formatAuthor($a);}, $authors);
+        if($abbrv){
+            $author_strs = array_map(function($a){return \Structures_BibTex::_formatAuthor($a,true);}, $authors);
+        }else{
+            $author_strs = array_map(function($a){return \Structures_BibTex::_formatAuthor($a);}, $authors);
+        }
 
         if ($get_array){
             return $author_strs;
         }
         else{
-            return join(', ', $author_strs);
+            return join(' and ', $author_strs);
         }
     }
 
@@ -297,14 +351,18 @@ class paper_model{
             $entry = array();
             $other_key = array();
             foreach(array_keys($data) as $key){
+
                 if (in_array($key, $BIBTEX_STANDARD_FIELDS)){
+                    if ($data[$key] == null){
+                        continue;
+                    }
                     if ($key != 'author'){
                         $entry[$key] = $data[$key];
                     }else{
                         $entry[$key] = json_encode($data[$key]);
                     }
                 }else{
-                    $other_key[$key] = json_encode($data[$key]);
+                    $other_key[$key] = $data[$key];
                 }
             }
             $entry['other_info'] = json_encode($other_key);
@@ -313,7 +371,7 @@ class paper_model{
         return $db_entries;
     }
 
-    private function _populate_from_db($db_entry){
+    private function _populate_from_db($db_entry, $show_visibility=true){
 
         include('./pm-config.php');
         $this->paper_bibtex->data = array();
@@ -336,8 +394,14 @@ class paper_model{
 
             }
         }
-        $this->visible = $db_entry[0]['visible'];
+        if($show_visibility){
+            $this->visible = $db_entry[0]['visible'];
+        }
         array_push($this->paper_bibtex->data, $papers);
+    }
+
+    private function _extract_authors($author_str){
+        return $this->paper_bibtex->_extractAuthors($author_str);
     }
 
     public static function  getSQLString(){
@@ -356,17 +420,17 @@ class paper_model{
         $field_str_full = join(',',array($field_str_full, $unique_constraint));
 
 
-        $build_author_db_str = 'CREATE TABLE  `'.$config["db_name"].'`.`pm_author` (`author_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,`author_name` VARCHAR( 255 ) NOT NULL ,UNIQUE (`author_name`)) ENGINE = MYISAM;';
+        $build_author_db_str = 'CREATE TABLE  `'.$config["db_name"].'`.`pm_author` (`author_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,`author_name` VARCHAR( 255 ) NOT NULL ,UNIQUE (`author_name`)) ENGINE = INNODB;';
 
-        $build_author_paper_str = ' CREATE TABLE '.$config["db_name"].'.pm_author_paper_bind(bind_id int NOT NULL AUTO_INCREMENT PRIMARY KEY , author_id int NOT NULL,  paper_id int NOT NULL,  Foreign Key (author_id) REFERENCES pm_author(author_id),  Foreign Key (paper_id) REFERENCES pm_paper(paper_id));';
+        $build_author_paper_str = ' CREATE TABLE '.$config["db_name"].'.pm_author_paper_bind(bind_id int NOT NULL AUTO_INCREMENT PRIMARY KEY , author_id int NOT NULL,  paper_id int NOT NULL,  Foreign Key (author_id) REFERENCES pm_author(author_id),  Foreign Key (paper_id) REFERENCES pm_paper(paper_id)) ENGINE = INNODB;';
 
-        $build_paper_extra_str = 'CREATE TABLE  '.$config["db_name"].'.`pm_paper_extra` (`paper_id` INT NOT NULL ,`visible` BOOL NOT NULL DEFAULT TRUE ,`download_url` TEXT NOT NULL ,`project_site` TEXT NOT NULL ,`thumb_url` TEXT NOT NULL ,PRIMARY KEY (  `paper_id` ), Foreign Key (paper_id) REFERENCES pm_paper(paper_id)); ';
+        $build_paper_extra_str = 'CREATE TABLE  '.$config["db_name"].'.`pm_paper_extra` (`paper_id` INT NOT NULL ,`visible` BOOL NOT NULL DEFAULT TRUE ,`download_url` TEXT NOT NULL ,`project_site` TEXT NOT NULL ,`thumb_url` TEXT NOT NULL ,PRIMARY KEY (  `paper_id` ), Foreign Key (paper_id) REFERENCES pm_paper(paper_id)) ENGINE = INNODB; ';
 
-        $build_admin = 'CREATE TABLE '.$config["db_name"].'.`pm_admin` (`admin_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `admin_level` INT NOT NULL DEFAULT 0, `admin_name` VARCHAR(255), `admin_pw` VARCHAR(255), UNIQUE(`admin_name`)); ';
+        $build_admin = 'CREATE TABLE '.$config["db_name"].'.`pm_admin` (`admin_id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY, `admin_level` INT NOT NULL DEFAULT 0, `admin_name` VARCHAR(255), `admin_pw` VARCHAR(255), UNIQUE(`admin_name`)) ENGINE = INNODB; ';
 
-        $build_root_admin = 'INSERT INTO pm_admin (admin_name, admin_pw, admin_level) VALUES ("admin", "'.password_hash('142536', PASSWORD_DEFAULT).'", 10);';
+        $build_root_admin = 'INSERT INTO pm_admin (admin_name, admin_pw, admin_level) VALUES ("admin", "'.password_hash('142536', PASSWORD_DEFAULT).'", 10) ;';
 
-        $ret_str = $base_str.$field_str_full.' ) ENGINE = MYISAM;  '.$build_author_db_str.$build_author_paper_str.$build_paper_extra_str.$build_admin.$build_root_admin;
+        $ret_str = $base_str.$field_str_full.' ) ENGINE = INNODB;;  '.$build_author_db_str.$build_author_paper_str.$build_paper_extra_str.$build_admin.$build_root_admin;
 
 
         return $ret_str;

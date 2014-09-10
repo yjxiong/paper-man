@@ -934,9 +934,10 @@ class Structures_BibTex
      *
      * @access private
      * @param array $array Author array
+     * @param bool $abbrv whether to abbrv first name
      * @return string the formatted author string
      */
-    public static function  _formatAuthor($array)
+    public static function  _formatAuthor($array, $abbrv=false)
     {
         $ret = self::$authorstring;
         if (!array_key_exists('von', $array)) {
@@ -963,7 +964,14 @@ class Structures_BibTex
         $ret = str_replace("VON", $array['von'], $ret);
         $ret = str_replace("LAST", $array['last'], $ret);
         $ret = str_replace("JR", $array['jr'], $ret);
-        $ret = str_replace("FIRST", $array['first'], $ret);
+        if($abbrv){
+            $fst = strtoupper($array['first']);
+            $rep = substr($fst,0, 1);
+            $rep.='.';
+            $ret = str_replace("FIRST", $rep, $ret);
+        }else{
+            $ret = str_replace("FIRST", $array['first'], $ret);
+        }
         return trim($ret);
     }
 

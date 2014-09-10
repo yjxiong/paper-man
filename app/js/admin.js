@@ -149,6 +149,7 @@ paperMan.paperViewModel = function(){
 //                    console.log(data);
                     // Push the data to the table
                     paper = data.content;
+                    delete paper.paper_id;
                     editPaperView.showEditDiaglog(paper, paper_id)
 
                 }
@@ -213,6 +214,25 @@ paperMan.paperViewModel = function(){
 
     self.editPaper = function(paper, paper_id){
 
+        delete paper.paper_id;
+
+        $.ajax({
+            url: self.editPaperInfoURI,
+            type: 'POST',
+            data: {
+                paper_id: paper_id,
+                updated_paper: paper
+            },
+            dataType: 'json',
+            success: function(data){
+                if (data.error_code != 1000) {
+                    alert('Backend error '+data.error_code+": "+data.error_msg);
+                } else self.refreshPaper();
+            },
+            error: function(data){
+                alert('Connection error!');
+            }
+        });
     }
 
     self.clearList = function(){
