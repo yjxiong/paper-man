@@ -67,7 +67,14 @@ if (isset($_GET['action'])){
             $author_name = $_GET['author'];
             $format = $_GET['response'];
             $display = $_GET['display'];
-            $str = $pm->getPaperByAuthor($author_name, $format);
+            $abbrv = $_GET['abbrv'];
+
+            if ($abbrv == 'yes'){
+                $show_abbrv = true;
+            }else{
+                $show_abbrv = false;
+            }
+            $str = $pm->getPaperByAuthor($author_name, $format, $show_abbrv);
 
             if ($display==null){
                 echo("document.write('".$str."');");

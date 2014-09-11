@@ -207,7 +207,7 @@ class paper_model{
     }
 
 
-    public function to_display($get_author_str=false){
+    public function to_display($get_author_str=false, $show_abbrv=true){
         include('pm-config.php');
         $display_list = array();
         foreach($DISPLAY_FIELDS as $f){
@@ -224,7 +224,7 @@ class paper_model{
         }
         $display_list['arena'] = join(',', $arena_array);
         if ($get_author_str){
-            $author_array = $this->_format_authors(true, null, true);
+            $author_array = $this->_format_authors(true, null, $show_abbrv);
             $display_list['author'] = join(', ',array_slice($author_array,0, -1)).', {and} '.end($author_array);
         }else{
             $display_list['author'] = $this->_format_authors(true);

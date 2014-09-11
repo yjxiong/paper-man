@@ -164,7 +164,7 @@ class PaperMan{
 
 
 
-    public function getPaperByAuthor($author_name, $format='text'){
+    public function getPaperByAuthor($author_name, $format='text', $show_abbrv=false){
         $author_dict = author_model::get_author(array($author_name));
         if($author_dict[$author_name] == null){
             echo('Unknown author');
@@ -184,19 +184,34 @@ class PaperMan{
         }else{
             if ($format=='natbib'){
 
+                if($show_abbrv){
+                    $entries = array_map(
+                        function($paper){
+                            $raw = $paper->get_data();
+                            $data = $raw[0];
+                            $dsp = $paper->to_display(true, false);
+                            $data['author'] = $dsp['author'];
+                            $data['type'] = $data['entryType'];
+                            $printer = new \AbbrvPrinter();
+                            $ret = '<li>'.$printer->CitationStr($data).'</li>';
+                            return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
+                        },
+                        $papers);
+                }else{
+                    $entries = array_map(
+                        function($paper){
+                            $raw = $paper->get_data();
+                            $data = $raw[0];
+                            $dsp = $paper->to_display(true, false);
+                            $data['author'] = $dsp['author'];
+                            $data['type'] = $data['entryType'];
+                            $printer = new \AbbrvPrinter();
+                            $ret = '<li>'.$printer->CitationStr($data).'</li>';
+                            return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
+                        },
+                        $papers);
+                }
 
-                $entries = array_map(
-                    function($paper){
-                        $raw = $paper->get_data();
-                        $data = $raw[0];
-                        $dsp = $paper->to_display(true);
-                        $data['author'] = $dsp['author'];
-                        $data['type'] = $data['entryType'];
-                        $printer = new \AbbrvPrinter();
-                        $ret = '<li>'.$printer->CitationStr($data).'</li>';
-                        return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
-                    },
-                    $papers);
                 return join(' ',$entries);
             }
             return $papers;
