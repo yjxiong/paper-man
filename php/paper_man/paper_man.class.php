@@ -164,7 +164,7 @@ class PaperMan{
 
 
 
-    public function getPaperByAuthor($author_name, $format='text'){
+    public function getPaperByAuthor($author_name, $format='text', $show_abbrv=false){
         $author_dict = author_model::get_author(array($author_name));
         if($author_dict[$author_name] == null){
             echo('Unknown author');
@@ -184,19 +184,34 @@ class PaperMan{
         }else{
             if ($format=='natbib'){
 
+                if($show_abbrv){
+                    $entries = array_map(
+                        function($paper){
+                            $raw = $paper->get_data();
+                            $data = $raw[0];
+                            $dsp = $paper->to_display(true, false);
+                            $data['author'] = $dsp['author'];
+                            $data['type'] = $data['entryType'];
+                            $printer = new \AbbrvPrinter();
+                            $ret = '<li>'.$printer->CitationStr($data).'</li>';
+                            return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
+                        },
+                        $papers);
+                }else{
+                    $entries = array_map(
+                        function($paper){
+                            $raw = $paper->get_data();
+                            $data = $raw[0];
+                            $dsp = $paper->to_display(true, false);
+                            $data['author'] = $dsp['author'];
+                            $data['type'] = $data['entryType'];
+                            $printer = new \AbbrvPrinter();
+                            $ret = '<li>'.$printer->CitationStr($data).'</li>';
+                            return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
+                        },
+                        $papers);
+                }
 
-                $entries = array_map(
-                    function($paper){
-                        $raw = $paper->get_data();
-                        $data = $raw[0];
-                        $dsp = $paper->to_display();
-                        $data['author'] = $dsp['author'];
-                        $data['type'] = $data['entryType'];
-                        $printer = new \AbbrvPrinter();
-                        $ret = '<li>'.$printer->CitationStr($data).'</li>';
-                        return preg_replace('/[{}]/', '', str_replace("\n","",$ret));
-                    },
-                    $papers);
                 return join(' ',$entries);
             }
             return $papers;
@@ -224,6 +239,18 @@ class PaperMan{
 
     public function editPaper($paper_id, $updated_paper){
 
+        $paper = paper_model::query_id($paper_id);
+
+        if ($paper == null){
+            $msg = new PaperManMessage(1011, 'paper found');
+            return $msg;
+        }
+
+        $success = $paper->update_data($paper_id, $updated_paper);
+
+        $msg = new PaperManMessage(1000, 'success');
+
+        return $msg;
     }
 
 

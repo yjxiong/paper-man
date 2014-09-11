@@ -67,7 +67,14 @@ if (isset($_GET['action'])){
             $author_name = $_GET['author'];
             $format = $_GET['response'];
             $display = $_GET['display'];
-            $str = $pm->getPaperByAuthor($author_name, $format);
+            $abbrv = $_GET['abbrv'];
+
+            if ($abbrv == 'yes'){
+                $show_abbrv = true;
+            }else{
+                $show_abbrv = false;
+            }
+            $str = $pm->getPaperByAuthor($author_name, $format, $show_abbrv);
 
             if ($display==null){
                 echo("document.write('".$str."');");
@@ -83,14 +90,12 @@ if (isset($_GET['action'])){
 
         case "editPaper":
             $pm->requireLogin();
-            $new_obj = $_POST['updated_paper'];
+            $updated_paper = $_POST['updated_paper'];
             $paper_id = $_POST['paper_id'];
 
-            $updated_paper = json_decode($new_obj);
+            $msg = $pm->editPaper($paper_id, $updated_paper);
 
-            $pm->editPaper($paper_id, $updated_paper);
 
-            $msg = new \paper_man\PaperManMessage(1000, 'success');
 
             break;
 
