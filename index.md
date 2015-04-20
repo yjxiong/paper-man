@@ -29,7 +29,7 @@ yjxiong at cuhk.edu.hk
 
 ###Recent Activities
 - One paper accepted to CVPR 2015. <font color="ff0000">***NEW!***</font>
-- Visiting Researcher at Google.
+- Visiting Researcher at Google from Jan 2015 - Apr 2015.
 - One paper accepted to NIPS 2014. 
 - One paper accepted to ICCV 2013. 
 - Started doing research on Face Recognition.
@@ -60,6 +60,8 @@ Yuanjun is now running a blog recording his research and life stuffs.
 
 ##
 **Other Links**
+
+[Yuanjun's Github](https://github.com/yjxiong)
 
 [MMLAB 香港中文大學多媒體實驗室](http://mmlab.ie.cuhk.edu.hk)
 
