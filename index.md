@@ -29,7 +29,7 @@ yjxiong at cuhk.edu.hk
 
 ###Recent Activities
 - One paper accepted to CVPR 2015. <font color="ff0000">***NEW!***</font>
-- Visiting Researcher at Google from Jan 2015 - Apr 2015.
+- Visiting Researcher at Google ![ATAP](atap.jpg) from Jan 2015 - Apr 2015.
 - One paper accepted to NIPS 2014. 
 - One paper accepted to ICCV 2013. 
 - Started doing research on Face Recognition.
